@@ -1,5 +1,6 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
+import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -85,5 +86,19 @@ public class AuthService {
     @Transactional
     public void logoutAllDevices(User user) {
         refreshService.revokeAllForUser(user, "logout_all");
+    }
+
+    @Transactional
+    public void resetPassword(String email, String oldPassword, String newPassword) {
+        User user =
+                userRepo.findByEmail(email).orElseThrow(() -> new AuthException("Invalid Email"));
+
+        if (!encoder.matches(oldPassword, user.getPassword())) {
+            throw new AuthException("Old password is incorrect");
+        }
+
+        user.setPassword(encoder.encode(newPassword));
+        user.setTokenInvalidBefore(Instant.now());
+        userRepo.save(user);
     }
 }

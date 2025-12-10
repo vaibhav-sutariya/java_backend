@@ -1,6 +1,7 @@
 package com.infynno.javastartup.startup.modules.auth.controller;
 
 import java.time.Instant;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,13 +10,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.infynno.javastartup.startup.config.JwtService;
 import com.infynno.javastartup.startup.modules.auth.dto.AuthResponse;
+import com.infynno.javastartup.startup.modules.auth.dto.ForgotPasswordRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.LoginRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.RefreshTokenRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.RegisterRequest;
+import com.infynno.javastartup.startup.modules.auth.dto.ResetPasswordRequest;
+import com.infynno.javastartup.startup.modules.auth.dto.VerifyOtpRequest;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
 import com.infynno.javastartup.startup.modules.auth.service.AccessTokenBlacklistService;
 import com.infynno.javastartup.startup.modules.auth.service.AuthService;
+import com.infynno.javastartup.startup.modules.auth.service.OtpService;
 import jakarta.security.auth.message.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final AccessTokenBlacklistService blacklistService;
     private final UserRepository userRepo;
+    private final OtpService otpService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req)
@@ -87,6 +93,25 @@ public class AuthController {
         blacklistService.blacklist(jti, exp, "logout_all");
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        otpService.sendForgotPasswordOtp(req.getEmail());
+        return ResponseEntity
+                .ok(Map.of("message", "OTP sent to your email (check Mailtrap inbox)"));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest req) {
+        otpService.veirfyOtp(req.getEmail(), req.getOtp());
+        return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req.getEmail(), req.getOldPassword(), req.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
 
