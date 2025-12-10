@@ -49,4 +49,7 @@ public class OtpRecord {
 
     @Column(length = 50)
     private String purpose;
+
+    @Column(length = 50)
+    private String channel;
 }

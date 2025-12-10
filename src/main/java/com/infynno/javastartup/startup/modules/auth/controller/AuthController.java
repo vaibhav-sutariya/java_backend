@@ -97,14 +97,14 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
-        otpService.sendForgotPasswordOtp(req.getEmail());
+        otpService.sendOtp(req.getEmail(), "PASSWORD_RESET");
         return ResponseEntity
                 .ok(Map.of("message", "OTP sent to your email (check Mailtrap inbox)"));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest req) {
-        otpService.veirfyOtp(req.getEmail(), req.getOtp());
+        otpService.verifyOtp(req.getEmail(), req.getOtp(), "PASSWORD_RESET");
         return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
     }
 

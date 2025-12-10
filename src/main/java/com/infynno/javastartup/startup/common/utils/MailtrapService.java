@@ -1,9 +1,11 @@
 package com.infynno.javastartup.startup.common.utils;
 
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
@@ -26,34 +28,40 @@ public class MailtrapService {
     @Value("${mailtrap.sender-name}")
     private String senderName;
 
-    public void sendOtpEmail(String toEmail, String otp) {
-        String url = "https://send.api.mailtrap.io/api/send/" + inboxId;
+    public void sendOtp(String toEmail, String otp, String purpose) {
+        String subject = switch (purpose) {
+            case "PASSWORD_RESET" -> "Your Password Reset OTP";
+            case "EMAIL_VERIFY" -> "Verify Your Email Address";
+            default -> "Your OTP Code";
+        };
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", "application/json");
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
-
-        String htmlBody = """
-                <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
-                    <h2>Password Reset OTP</h2>
-                    <p>Your OTP is:</p>
-                    <h1 style="font-size: 48px; letter-spacing: 10px; color: #4F46E5;">%s</h1>
-                    <p>This OTP will expire in 10 minutes.</p>
-                    <p>If you didn't request this, ignore this email.</p>
-                </div>
-                """.formatted(otp);
+        String html =
+                """
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                            <h2 style="color: #4F46E5;">%s</h2>
+                            <p>Here is your verification code:</p>
+                            <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1F2937; text-align: center; background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                %s
+                            </div>
+                            <p>This code expires in <strong>10 minutes</strong>.</p>
+                            <p>If you didn't request this, please ignore this email.</p>
+                        </div>
+                        """
+                        .formatted(subject.replace("Your ", ""), otp);
 
         Map<String, Object> body = Map.of("from", Map.of("email", senderEmail, "name", senderName),
-                "to", java.util.List.of(Map.of("email", toEmail)), "subject",
-                "Your Password Reset OTP", "html", htmlBody, "category", "password-reset");
+                "to", List.of(Map.of("email", toEmail)), "subject", subject, "html", html,
+                "category", purpose.toLowerCase());
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
 
         try {
-            restTemplate.postForEntity(url, request, String.class);
+            restTemplate.postForEntity("https://send.api.mailtrap.io/api/send/" + inboxId,
+                    new HttpEntity<>(body, headers), String.class);
         } catch (Exception e) {
-            throw new AuthException("Failed to send OTP email. Please try again.");
+            throw new AuthException("Failed to send OTP email. Please try again later.");
         }
     }
 }

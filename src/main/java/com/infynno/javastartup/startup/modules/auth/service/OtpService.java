@@ -30,40 +30,48 @@ public class OtpService {
     @Value("${otp.length:6}")
     private int otpLength;
 
+    @Value("${otp.daily-limit:5}")
+    private int dailyLimit;
+
     private static final String PURPOSE_RESET = "PASSWORD_RESET";
 
     @Transactional
-    public void sendForgotPasswordOtp(String email) throws AuthException {
+    public void sendOtp(String email, String purpose) throws AuthException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException("No Account found with this email"));
 
+        // Rate limit: 5 per day
+        Instant startOfDay = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+        long todayCount =
+                otpRepository.countByUserAndPurposeAndCreatedAtAfter(user, purpose, startOfDay);
+
+        if (todayCount >= dailyLimit) {
+            throw new AuthException("Too many OTP requests. Try again tomorrow.");
+        }
+
         String otp = generateOtp();
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(expiryMinutes * 60L);
+        Instant expiresAt = Instant.now().plusSeconds(expiryMinutes * 60L);
 
 
-        OtpRecord otpRecord = OtpRecord.builder().code(otp).user(user).purpose(PURPOSE_RESET)
-                .createdAt(now).expiresAt(expiresAt).used(false).build();
-        otpRepository.save(otpRecord);
+        OtpRecord record = OtpRecord.builder().code(otp).user(user).purpose(purpose)
+                .createdAt(Instant.now()).expiresAt(expiresAt).used(false).channel("EMAIL").build();
+        otpRepository.save(record);
 
-        mailtrapService.sendOtpEmail(email, otp);
+        mailtrapService.sendOtp(user.getEmail(), otp, purpose);
     }
 
     @Transactional
-    public void veirfyOtp(String email, String otp) {
+    public void verifyOtp(String email, String otp, String purpose) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException("Invalid email"));
         Instant now = Instant.now();
 
-        OtpRecord record = otpRepository.findByCodeAndUsedFalseAndExpiresAtAfter(otp, now)
-                .orElseThrow(() -> new AuthException("Invalid or expired OTP"));
+        OtpRecord record =
+                otpRepository.findByCodeAndPurposeAndUsedFalseAndExpiresAtAfter(otp, purpose, now)
+                        .orElseThrow(() -> new AuthException("Invalid or expired OTP"));
 
         if (!record.getUser().equals(user)) {
             throw new AuthException("Invalid OTP for the provided email");
-        }
-
-        if (!PURPOSE_RESET.equals(record.getPurpose())) {
-            throw new AuthException("Invalid OTP purpose");
         }
 
         record.setUsed(true);
