@@ -1,11 +1,11 @@
 package com.infynno.javastartup.startup.modules.auth.model;
 
 import java.time.Instant;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "otp_records",
         indexes = {@Index(name = "idx_otp_code", columnList = "code"),
+                @Index(name = "idx_otp_user_purpose", columnList = "user_id,purpose"),
                 @Index(name = "idz_otp_user_expires", columnList = "user_id, expires_at")})
 
 @Data
@@ -28,8 +29,10 @@ import lombok.NoArgsConstructor;
 public class OtpRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
+    private String id;
 
     @Column(nullable = false, length = 10)
     private String code;

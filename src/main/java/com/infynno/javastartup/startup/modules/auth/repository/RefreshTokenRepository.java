@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.infynno.javastartup.startup.modules.auth.model.RefreshToken;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
     Optional<RefreshToken> findByToken(String token);
 
     List<RefreshToken> findAllByUser(User user);

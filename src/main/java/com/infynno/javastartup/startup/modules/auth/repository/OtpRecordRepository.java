@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.infynno.javastartup.startup.modules.auth.model.OtpRecord;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 
-public interface OtpRecordRepository extends JpaRepository<OtpRecord, Long> {
+public interface OtpRecordRepository extends JpaRepository<OtpRecord, String> {
     Optional<OtpRecord> findByCodeAndPurposeAndUsedFalseAndExpiresAtAfter(String code,
             String purpose, Instant now);
 
