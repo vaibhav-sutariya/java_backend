@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.infynno.javastartup.startup.config.JwtService;
+import com.infynno.javastartup.startup.modules.auth.config.JwtService;
 import com.infynno.javastartup.startup.modules.auth.dto.AuthResponse;
 import com.infynno.javastartup.startup.modules.auth.dto.ForgotPasswordRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.LoginRequest;

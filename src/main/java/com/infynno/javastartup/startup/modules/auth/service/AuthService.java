@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
-import com.infynno.javastartup.startup.config.JwtService;
+import com.infynno.javastartup.startup.modules.auth.config.JwtService;
 import com.infynno.javastartup.startup.modules.auth.dto.AuthResponse;
 import com.infynno.javastartup.startup.modules.auth.dto.LoginRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.RegisterRequest;

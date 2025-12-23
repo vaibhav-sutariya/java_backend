@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
-import com.infynno.javastartup.startup.config.JwtService;
+import com.infynno.javastartup.startup.modules.auth.config.JwtService;
 import com.infynno.javastartup.startup.modules.auth.model.RefreshToken;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.RefreshTokenRepository;

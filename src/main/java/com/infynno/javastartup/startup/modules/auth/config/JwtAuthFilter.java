@@ -1,4 +1,4 @@
-package com.infynno.javastartup.startup.config;
+package com.infynno.javastartup.startup.modules.auth.config;
 
 import java.io.IOException;
 import java.time.Instant;

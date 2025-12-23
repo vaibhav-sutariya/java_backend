@@ -1,4 +1,4 @@
-package com.infynno.javastartup.startup.config;
+package com.infynno.javastartup.startup.modules.auth.config;
 
 import java.security.Key;
 import java.time.Instant;
