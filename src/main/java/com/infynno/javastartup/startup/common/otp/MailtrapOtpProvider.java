@@ -1,79 +1,88 @@
 package com.infynno.javastartup.startup.common.otp;
 
 import java.util.List;
-import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
-import lombok.RequiredArgsConstructor;
+
+import io.mailtrap.client.MailtrapClient;
+import io.mailtrap.config.MailtrapConfig;
+import io.mailtrap.factory.MailtrapClientFactory;
+import io.mailtrap.model.request.emails.Address;
+import io.mailtrap.model.request.emails.MailtrapMail;
 
 @Component
-@RequiredArgsConstructor
 public class MailtrapOtpProvider implements OtpProvider {
-    
-    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${otp.provider.mailtrap.api-key}")
+    @Value("${mailtrap.api-key}")
     private String apiKey;
 
-    @Value("${otp.provider.mailtrap.inbox-id}")
-    private String inboxId;
-
-    @Value("${otp.provider.mailtrap.sender-email}")
+    @Value("${mailtrap.sender-email}")
     private String senderEmail;
 
-    @Value("${otp.provider.mailtrap.sender-name}")
+    @Value("${mailtrap.sender-name}")
     private String senderName;
+
+    private volatile MailtrapClient mailtrapClient;
 
     @Override
     public String getName() {
         return "MAILTRAP";
     }
 
+    private MailtrapClient getClient() {
+        if (mailtrapClient == null) {
+            synchronized (this) {
+                if (mailtrapClient == null) {
+                    MailtrapConfig config = new MailtrapConfig.Builder()
+                        .token(apiKey)
+                        .build();
+
+                    mailtrapClient =
+                        MailtrapClientFactory.createMailtrapClient(config);
+                }
+            }
+        }
+        return mailtrapClient;
+    }
+
     @Override
     public void sendOtp(String toEmail, String otp, String purpose) {
+
         String subject = switch (purpose) {
             case "EMAIL_VERIFICATION" -> "Verify Your Email Address";
-            case "PASSWORD_RESET" -> "Your Password Reset OTP";
+            case "PASSWORD_RESET" -> "Reset Your Password";
             default -> "Your OTP Code";
         };
 
         String html = """
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h2 style="color: #4F46E5;">%s</h2>
-                    <p>Here is your verification code:</p>
-                    <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1F2937; text-align: center; background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        %s
-                    </div>
-                    <p>This code expires in <strong>10 minutes</strong>.</p>
-                    <p>If you didn't request this, please ignore this email.</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;
+                        padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2>%s</h2>
+                <p>Your OTP is:</p>
+                <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px;
+                            text-align: center; background: #F3F4F6;
+                            padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    %s
                 </div>
-                """.formatted(subject.replace("Your ", ""), otp);
+            </div>
+        """.formatted(subject, otp);
 
-        Map<String, Object> body = Map.of(
-                "from", Map.of("email", senderEmail, "name", senderName),
-                "to", List.of(Map.of("email", toEmail)),
-                "subject", subject,
-                "html", html,
-                "category", purpose.toLowerCase()
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
+        MailtrapMail mail = MailtrapMail.builder()
+            .from(new Address(senderEmail, senderName))
+            .to(List.of(new Address(toEmail)))
+            .subject(subject)
+            .html(html)
+            .category(purpose)
+            .build();
 
         try {
-            restTemplate.postForEntity(
-                    "https://send.api.mailtrap.io/api/send/" + inboxId,
-                    new HttpEntity<>(body, headers),
-                    String.class
-            );
+            getClient().send(mail);
         } catch (Exception e) {
-            throw new AuthException("Failed to send OTP email. Please try again later.");
+            System.err.println("Failed to send OTP via Mailtrap: " + e.getMessage());
+            throw new AuthException("Failed to send OTP via Mailtrap");
         }
     }
 }

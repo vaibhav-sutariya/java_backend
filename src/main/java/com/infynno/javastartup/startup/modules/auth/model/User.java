@@ -46,8 +46,8 @@ public class User {
     private Instant tokenInvalidBefore;
 
      // New fields for email verification
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified;
+    @Column(name = "email_verified", nullable = true)
+    private boolean emailVerified = false;
 
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;

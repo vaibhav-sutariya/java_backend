@@ -3,15 +3,19 @@ package com.infynno.javastartup.startup.modules.auth.service;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.common.otp.OtpProvider;
 import com.infynno.javastartup.startup.modules.auth.model.OtpRecord;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.OtpRecordRepository;
 import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,9 @@ public class OtpService {
 
     @Value("${otp.daily-limit:5}")
     private int dailyLimit;
+
+    @Autowired
+    OtpProvider provider;
 
     @Transactional
     public void sendOtp(String email, String purpose) throws AuthException {
@@ -64,12 +71,6 @@ public class OtpService {
                 .build();
         
         otpRepository.save(record);
-
-        // Use configured provider
-        OtpProvider provider = otpProviderMap.get(defaultProvider);
-        if (provider == null) {
-            throw new AuthException("OTP provider not configured");
-        }
 
         try {
             provider.sendOtp(email, otp, purpose);
