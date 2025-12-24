@@ -1,10 +1,10 @@
 package com.infynno.javastartup.startup.modules.auth.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.infynno.javastartup.startup.common.response.ApiResponse;
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
 
@@ -13,11 +13,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication auth) throws AuthException {
+    public ApiResponse<?> me(Authentication auth) throws AuthException {
         if (auth == null) {
             throw new AuthException("Unauthorized");
         }
-        return ResponseEntity.ok(auth.getPrincipal()); // will return User object from
-                                                       // SecurityContext
+        return ApiResponse.success("User fetched successfully", auth.getPrincipal());
     }
 }

@@ -19,21 +19,11 @@ public class CustomerResponse {
     private String createdAt;
     private String updatedAt;
 
-    public CustomerResponse(String id, String name, String phoneNumber, String address,
-            String state, String city, String zipCode) {
-        this.id = id;
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.state = state;
-        this.city = city;
-        this.zipCode = zipCode;
-    }
-
     public static CustomerResponse fromEntity(Customer customer) {
         return new CustomerResponse(customer.getId(), customer.getName(), customer.getPhoneNumber(),
                 customer.getAddress(), customer.getState(), customer.getCity(),
-                customer.getZipCode());
+                customer.getZipCode(), customer.getCreatedBy().getId(), customer.getUpdatedBy().getId(),
+                customer.getCreatedAt().toString(), customer.getUpdatedAt().toString());
     }
 
 }
