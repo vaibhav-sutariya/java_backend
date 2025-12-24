@@ -3,6 +3,8 @@ package com.infynno.javastartup.startup.modules.customer.service;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class CustomerService {
     @Autowired
     private final CustomerRepository customerRepository;
 
+    @CacheEvict(value = "customers", allEntries = true)
     @Transactional
     public CustomerResponse addCustomer(AddCustomerRequest req, User currentUserId)
             throws AuthException {
@@ -47,6 +50,10 @@ public class CustomerService {
     }
 
 
+ 
+    @Cacheable(value = "customers",
+    key = "#currentUserId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
+)
     @Transactional
     public ApiResponse<List<CustomerResponse>> getAllCustomers(String currentUserId, Pageable pageable) throws AuthException {
         Page<Customer> page = customerRepository.findByCreatedById(currentUserId, pageable);
@@ -58,6 +65,7 @@ public class CustomerService {
         return  ApiResponse.success("Customer fetched successfully", data, pagination);
     }
 
+    @CacheEvict(value = "customers", allEntries = true)
     @Transactional
     public ApiResponse<CustomerResponse> updateCustomer(String customerId, AddCustomerRequest req, User currentUser)
             throws AuthException {
@@ -77,6 +85,7 @@ public class CustomerService {
         return ApiResponse.success("Customer updated successfully", CustomerResponse.fromEntity(customer));
     }
 
+    @CacheEvict(value = "customers", allEntries = true)
     public ApiResponse<Void> deleteCustomer(String customerId) throws AuthException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new AuthException("Customer not found"));
