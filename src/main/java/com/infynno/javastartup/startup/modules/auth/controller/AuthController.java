@@ -14,7 +14,9 @@ import com.infynno.javastartup.startup.modules.auth.dto.ForgotPasswordRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.LoginRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.RefreshTokenRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.RegisterRequest;
+import com.infynno.javastartup.startup.modules.auth.dto.RegisterResponse;
 import com.infynno.javastartup.startup.modules.auth.dto.ResetPasswordRequest;
+import com.infynno.javastartup.startup.modules.auth.dto.VerifyEmailRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.VerifyOtpRequest;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
@@ -38,9 +40,30 @@ public class AuthController {
     private final OtpService otpService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req)
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest req)
             throws AuthException {
         return ResponseEntity.ok(authService.register(req));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<AuthResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest req)
+            throws AuthException {
+        return ResponseEntity.ok(authService.verifyEmailAndLogin(req));
+    }
+
+     @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> request) 
+            throws AuthException {
+        String email = request.get("email");
+        if (email == null || email.isBlank()) {
+            throw new AuthException("Email is required");
+        }
+        
+        authService.resendVerificationOtp(email);
+        return ResponseEntity.ok(Map.of(
+            "message", "Verification OTP sent successfully",
+            "timestamp", Instant.now().toString()
+        ));
     }
 
     @PostMapping("/login")

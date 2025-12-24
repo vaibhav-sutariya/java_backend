@@ -44,4 +44,14 @@ public class User {
 
     @Column(name = "token_invalid_before")
     private Instant tokenInvalidBefore;
+
+     // New fields for email verification
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
+    @Column(name = "email_verification_sent_at")
+    private Instant emailVerificationSentAt;
 }
