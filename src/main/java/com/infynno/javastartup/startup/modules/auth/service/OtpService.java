@@ -25,7 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OtpService {
     
+    @Autowired
     private final UserRepository userRepository;
+    @Autowired
     private final OtpRecordRepository otpRepository;
     private final Map<String, OtpProvider> otpProviderMap;
 

@@ -1,6 +1,7 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
 import java.time.Instant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.modules.auth.model.AccessTokenBlacklist;
 import com.infynno.javastartup.startup.modules.auth.repository.AccessTokenBlacklistRepository;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AccessTokenBlacklistService {
+    @Autowired
     private final AccessTokenBlacklistRepository repository;
 
     @Transactional

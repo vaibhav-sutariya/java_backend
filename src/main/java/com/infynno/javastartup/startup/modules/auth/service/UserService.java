@@ -1,6 +1,7 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
 import java.time.Instant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.modules.auth.model.User;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    @Autowired
     private final UserRepository repo;
     private final PasswordEncoder encoder;
     private final RefreshTokenService refreshService;

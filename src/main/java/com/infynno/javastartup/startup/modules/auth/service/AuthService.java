@@ -1,6 +1,7 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
 import java.time.Instant;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    @Autowired
     private final UserRepository userRepo;
     private final JwtService jwtService;
     private final PasswordEncoder encoder;

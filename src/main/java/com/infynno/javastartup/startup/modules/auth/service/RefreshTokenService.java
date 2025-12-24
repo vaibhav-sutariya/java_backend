@@ -3,6 +3,7 @@ package com.infynno.javastartup.startup.modules.auth.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
+    @Autowired
     private final RefreshTokenRepository repository;
     private final JwtService jwtService;
 

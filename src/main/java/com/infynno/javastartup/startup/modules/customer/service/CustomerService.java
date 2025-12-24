@@ -2,6 +2,7 @@ package com.infynno.javastartup.startup.modules.customer.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
+    @Autowired
     private final CustomerRepository customerRepository;
 
     @Transactional
@@ -35,6 +37,16 @@ public class CustomerService {
         return CustomerResponse.fromEntity(customer);
 
     }
+    
+    @Transactional
+    public ApiResponse<CustomerResponse> getCustomerById(String customerId) throws AuthException {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new AuthException("Customer not found"));
+
+        return ApiResponse.success("Customer fetched successfully", CustomerResponse.fromEntity(customer));
+    }
+
+
     @Transactional
     public ApiResponse<List<CustomerResponse>> getAllCustomers(String currentUserId, Pageable pageable) throws AuthException {
         Page<Customer> page = customerRepository.findByCreatedById(currentUserId, pageable);
@@ -44,5 +56,33 @@ public class CustomerService {
         Pagination pagination= new Pagination(page.getNumber(), page.getSize(), page.getTotalElements() , page.getTotalPages());
 
         return  ApiResponse.success("Customer fetched successfully", data, pagination);
+    }
+
+    @Transactional
+    public ApiResponse<CustomerResponse> updateCustomer(String customerId, AddCustomerRequest req, User currentUser)
+            throws AuthException {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new AuthException("Customer not found"));
+
+        customer.setName(req.getName());
+        customer.setPhoneNumber(req.getPhoneNumber());
+        customer.setAddress(req.getAddress());
+        customer.setState(req.getState());
+        customer.setCity(req.getCity());
+        customer.setZipCode(req.getZipCode());
+        customer.setUpdatedBy(currentUser);
+
+        customerRepository.save(customer);
+
+        return ApiResponse.success("Customer updated successfully", CustomerResponse.fromEntity(customer));
+    }
+
+    public ApiResponse<Void> deleteCustomer(String customerId) throws AuthException {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new AuthException("Customer not found"));
+
+        customerRepository.delete(customer);
+
+        return ApiResponse.success("Customer deleted successfully", null);
     }
 }
