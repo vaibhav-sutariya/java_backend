@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.common.response.ApiResponse;
 import com.infynno.javastartup.startup.modules.services.dto.ServiceResponse;
 import com.infynno.javastartup.startup.modules.services.service.ServicesService;
@@ -17,7 +18,7 @@ public class ServiceController {
     private final ServicesService servicesService;
 
     @GetMapping("/get-all-services")
-    public ResponseEntity<ApiResponse<List<ServiceResponse>>> getAllServices() throws Exception {
+    public ResponseEntity<ApiResponse<List<ServiceResponse>>> getAllServices() throws AuthException {
         return ResponseEntity.ok(servicesService.getAllServices());
     }
 }
