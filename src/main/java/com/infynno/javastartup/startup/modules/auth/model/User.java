@@ -60,6 +60,9 @@ public class User {
     private String phoneNumber;
 
     @Column(nullable= true)
+    private String businessName;
+
+    @Column(nullable= true)
     private String businessAddress;
 
     @Column(nullable= true)
@@ -69,7 +72,7 @@ public class User {
     private String state;
     
     @Column(nullable= true)
-    private String postalCode;
+    private String zipCode;
 
     @Column(nullable= true, unique= true)
     private String gstNumber;
