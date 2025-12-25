@@ -57,4 +57,8 @@ public class UserService {
         user.setGstPercentage(req.getGstPercentage());
 
     }
+
+    @Transactional
+    public void selectServices(User user, String[] serviceIds) {
+    }
 }

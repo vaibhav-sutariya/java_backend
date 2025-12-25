@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Entity
 @Data
 @Builder
@@ -18,22 +17,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "services")
 public class Service {
+
     @Id
     @GeneratedValue
     @UuidGenerator
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
+    @Column(nullable = false, updatable = false, columnDefinition = "VARCHAR(36)")
     private String id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column
     private String icon;
 
-    @Column
     private int price;
-    
-    @Column
-    private String nextService;
 
+    private String nextService;
 }
