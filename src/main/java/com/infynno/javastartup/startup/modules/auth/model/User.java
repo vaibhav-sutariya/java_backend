@@ -1,5 +1,6 @@
 package com.infynno.javastartup.startup.modules.auth.model;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import org.hibernate.annotations.UuidGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -54,4 +55,37 @@ public class User {
 
     @Column(name = "email_verification_sent_at")
     private Instant emailVerificationSentAt;
+
+    @Column(nullable= true, unique= true)
+    private String phoneNumber;
+
+    @Column(nullable= true)
+    private String businessAddress;
+
+    @Column(nullable= true)
+    private String city;
+
+    @Column(nullable= true)
+    private String state;
+    
+    @Column(nullable= true)
+    private String postalCode;
+
+    @Column(nullable= true, unique= true)
+    private String gstNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
+    @Column(nullable= true)
+    private String profileImage;
+
+    @Column(columnDefinition = "TEXT")
+    private String signature;
+
+    @Column(nullable= true)
+    private String pin;
+
+    @Column(nullable= true)
+    private BigDecimal gstPercentage;
 }
