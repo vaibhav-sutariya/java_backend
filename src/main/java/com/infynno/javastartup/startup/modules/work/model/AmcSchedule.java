@@ -1,10 +1,13 @@
-package com.infynno.javastartup.startup.modules.customer.model;
+package com.infynno.javastartup.startup.modules.work.model;
 
 import java.time.Instant;
 import org.hibernate.annotations.UuidGenerator;
 import com.infynno.javastartup.startup.modules.auth.model.User;
+import com.infynno.javastartup.startup.modules.customer.model.Customer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -23,55 +26,57 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "customers")
-public class Customer {
+@Table(name = "amc_schedules")
+public class AmcSchedule {
     @Id
     @GeneratedValue
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     private String id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne( fetch = FetchType.LAZY ,optional = false)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "work_type",nullable = false)
+    private WorkType workType;
 
     @Column(nullable = false)
-    private String phoneNumber;
+    private int price;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 
     @Column(nullable = false)
-    private String address;
+    private int collectedAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String state;
+    private ScheduleStatus status;
 
-    @Column(nullable = false)
-    private String city;
-
-    @Column(nullable = false)
-    private String zipCode;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false, updatable = false)
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "updated_by", nullable = false)
-    private User updatedBy;
-
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
+
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
+        this.createdAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = Instant.now();
+        this.updatedAt = Instant.now(); 
     }
 }
+

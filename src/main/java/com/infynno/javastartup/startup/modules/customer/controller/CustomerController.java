@@ -20,7 +20,6 @@ import com.infynno.javastartup.startup.common.response.ApiResponse;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.customer.dto.AddCustomerRequest;
 import com.infynno.javastartup.startup.modules.customer.dto.CustomerResponse;
-import com.infynno.javastartup.startup.modules.customer.repository.CustomerRepository;
 import com.infynno.javastartup.startup.modules.customer.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final CustomerRepository customerRepository;
 
     @PostMapping("/add-customer")
     public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody AddCustomerRequest req,

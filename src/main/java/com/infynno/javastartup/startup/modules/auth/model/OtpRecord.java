@@ -1,7 +1,7 @@
 package com.infynno.javastartup.startup.modules.auth.model;
 
 import java.time.Instant;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,8 +29,8 @@ import lombok.NoArgsConstructor;
 public class OtpRecord {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     private String id;
 
