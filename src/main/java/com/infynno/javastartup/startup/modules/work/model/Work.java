@@ -4,7 +4,7 @@ import java.time.Instant;
 import org.hibernate.annotations.UuidGenerator;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.customer.model.Customer;
-import com.infynno.javastartup.startup.modules.services.model.Service;
+import com.infynno.javastartup.startup.modules.services.model.Services;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,7 +41,7 @@ public class Work {
 
     @ManyToOne(fetch=FetchType.LAZY, optional=false)
     @JoinColumn(name="service_id", nullable=false)
-    private Service serviceId;
+    private Services serviceId;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="amc_id")

@@ -2,7 +2,7 @@ package com.infynno.javastartup.startup.modules.auth.model;
 
 import java.time.Instant;
 import org.hibernate.annotations.UuidGenerator;
-import com.infynno.javastartup.startup.modules.services.model.Service;
+import com.infynno.javastartup.startup.modules.services.model.Services;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,7 +33,7 @@ public class VendorService {
 
     @ManyToOne(fetch= FetchType.LAZY, optional=false)
     @JoinColumn(name="vendor_id", nullable=false)
-    private Service serviceId;
+    private Services serviceId;
 
     @Column
     private String icon;

@@ -1,6 +1,7 @@
 package com.infynno.javastartup.startup.modules.services.model;
 
 import org.hibernate.annotations.UuidGenerator;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "services")
-public class Service {
+public class Services {
 
     @Id
     @GeneratedValue

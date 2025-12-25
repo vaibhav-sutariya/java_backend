@@ -3,7 +3,7 @@ package com.infynno.javastartup.startup.modules.services.seed;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import com.infynno.javastartup.startup.modules.services.model.Service;
+import com.infynno.javastartup.startup.modules.services.model.Services;
 import com.infynno.javastartup.startup.modules.services.repository.ServiceRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -18,22 +18,22 @@ public class ServiceDataSeeder implements CommandLineRunner {
             return;
         }
         
-        List<Service> services = List.of(
-            Service.builder()
+        List<Services> services = List.of(
+            Services.builder()
                 .icon("water-purifier-icon.svg")
                 .name("R.O Purifier")
                 .price(236)
                 .nextService("3 months")
                 .build(),
 
-            Service.builder()
+            Services.builder()
                 .icon("ac.svg")
                 .name("Air Conditioner")
                 .price(236)
                 .nextService("3 months")
                 .build(),
 
-            Service.builder()
+            Services.builder()
                 .icon("washing-machine-icon.svg")
                 .name("Washing Machine")
                 .price(236)
