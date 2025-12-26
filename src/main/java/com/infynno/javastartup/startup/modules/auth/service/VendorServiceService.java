@@ -54,4 +54,13 @@ public class VendorServiceService {
         vendorServiceRepository.saveAll(vendorServices);
         return ApiResponse.success("Vendor services selected successfully");
     }
+
+    public ApiResponse<List<VendorServiceResponse>> getVendorServicesByUser(User user){
+        List<VendorService> vendorServices = vendorServiceRepository.findByCreatedBy(user);
+        List<VendorServiceResponse> responseList = new ArrayList<>();
+        for(VendorService vs : vendorServices){
+            responseList.add(VendorServiceResponse.fromEntity(vs));
+        }
+        return ApiResponse.success("Vendor services fetched successfully", responseList);
+    }
 }

@@ -1,5 +1,6 @@
 package com.infynno.javastartup.startup.modules.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.infynno.javastartup.startup.modules.auth.model.VendorService;
 
 import lombok.AllArgsConstructor;
@@ -11,7 +12,9 @@ public class VendorServiceResponse {
     private String id;
     private String name;
     private String icon;
+    @JsonIgnore
     private int  price;
+    @JsonIgnore
     private String nextService;
 
 
