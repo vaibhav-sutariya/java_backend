@@ -1,12 +1,16 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
 import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import com.infynno.javastartup.startup.modules.auth.dto.UpdateBusinessDetailsRequest;
 import com.infynno.javastartup.startup.modules.auth.model.User;
+import com.infynno.javastartup.startup.modules.auth.model.VendorService;
 import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -60,5 +64,9 @@ public class UserService {
 
     @Transactional
     public void selectServices(User user, String[] serviceIds) {
+        VendorService[] services = new VendorService[serviceIds.length];
+        for (int i = 0; i < serviceIds.length; i++) {
+            services[i].setId(serviceIds[i]);   
+        }        
     }
 }
