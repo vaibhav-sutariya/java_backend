@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.infynno.javastartup.startup.common.response.ApiResponse;
 import com.infynno.javastartup.startup.modules.auth.dto.SelectVendorServicesRequest;
+import com.infynno.javastartup.startup.modules.auth.dto.VendorServiceResponse;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.model.VendorService;
 import com.infynno.javastartup.startup.modules.auth.repository.VendorServiceRepository;
@@ -21,7 +23,7 @@ public class VendorServiceService {
     private final ServiceRepository serviceRepository;
     private final VendorServiceRepository vendorServiceRepository;
 
-    public void selectServices(User user, SelectVendorServicesRequest req){
+    public ApiResponse<List<VendorServiceResponse>> selectServices(User user, SelectVendorServicesRequest req){
         List<VendorService> vendorServices = new ArrayList<>();
 
         for(String serviceId : req.getServiceIds()){
@@ -50,5 +52,6 @@ public class VendorServiceService {
             
         }
         vendorServiceRepository.saveAll(vendorServices);
+        return ApiResponse.success("Vendor services selected successfully");
     }
 }
