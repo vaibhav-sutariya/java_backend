@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.infynno.javastartup.startup.common.response.ApiResponse;
+import com.infynno.javastartup.startup.modules.auth.dto.AddVendorServiceRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.SelectVendorServicesRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.VendorServiceResponse;
 import com.infynno.javastartup.startup.modules.auth.model.User;
@@ -62,5 +63,18 @@ public class VendorServiceService {
             responseList.add(VendorServiceResponse.fromEntity(vs));
         }
         return ApiResponse.success("Vendor services fetched successfully", responseList);
+    }
+
+    public ApiResponse<VendorServiceResponse> addCustomVendorService(User user, AddVendorServiceRequest req){
+        VendorService vendorService = VendorService.builder()
+                .name(req.getName())
+                .price(req.getPrice())
+                .nextService(req.getNextService())
+                .isCustom(true)
+                .createdBy(user)
+                .createdAt(Instant.now())
+                .build();
+        vendorServiceRepository.save(vendorService);
+        return ApiResponse.success("Custom vendor service added successfully", VendorServiceResponse.fromEntity(vendorService));
     }
 }

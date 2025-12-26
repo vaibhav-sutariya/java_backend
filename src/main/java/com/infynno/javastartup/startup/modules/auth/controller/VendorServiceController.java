@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.infynno.javastartup.startup.common.response.ApiResponse;
+import com.infynno.javastartup.startup.modules.auth.dto.AddVendorServiceRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.SelectVendorServicesRequest;
 import com.infynno.javastartup.startup.modules.auth.dto.VendorServiceResponse;
 import com.infynno.javastartup.startup.modules.auth.model.User;
@@ -40,4 +41,12 @@ public class VendorServiceController {
     ) {
         return ResponseEntity.ok(vendorServiceService.getVendorServicesByUser(user));
     }
+
+
+    @PostMapping("add-custom-service")
+    public ResponseEntity<ApiResponse<VendorServiceResponse>> addCustomService(
+        @AuthenticationPrincipal User user,
+        @Valid @RequestBody AddVendorServiceRequest req
+    ) {
+        return ResponseEntity.ok(vendorServiceService.addCustomVendorService(user, req));}
 }
