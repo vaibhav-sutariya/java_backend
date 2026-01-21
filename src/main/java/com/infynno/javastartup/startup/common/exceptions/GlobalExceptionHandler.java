@@ -1,8 +1,10 @@
 package com.infynno.javastartup.startup.common.exceptions;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,23 +16,26 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    private static final boolean IS_PRODUCTION = false; // ← Set to true in production!
+    private final Environment environment;
+
+    private boolean isProduction() {
+        return Arrays.asList(environment.getActiveProfiles()).contains("prod");
+    }
 
     // 1. Your custom AuthException (for controller-level auth errors)
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<Object> handleAuthException(AuthException ex) {
-        Map<String, Object> body = Map.of(
-                "timestamp", Instant.now(),
-                "status", ex.getStatus().value(),
-                "error", ex.getStatus().getReasonPhrase(),
-                "message", ex.getUserMessage()
-        );
+        Map<String, Object> body =
+                Map.of("timestamp", Instant.now(), "status", ex.getStatus().value(), "error",
+                        ex.getStatus().getReasonPhrase(), "message", ex.getUserMessage());
 
-        if (!IS_PRODUCTION && ex.getDebugMessage() != null) {
+        if (!isProduction() && ex.getDebugMessage() != null) {
             Map<String, Object> devBody = new HashMap<>(body);
             devBody.put("debug", ex.getDebugMessage());
             return new ResponseEntity<>(devBody, ex.getStatus());
@@ -42,7 +47,8 @@ public class GlobalExceptionHandler {
     // 2. AccessDeniedException (403 Forbidden from @PreAuthorize, etc.)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Access denied. You don't have permission to access this resource.");
+        return buildResponse(HttpStatus.FORBIDDEN,
+                "Access denied. You don't have permission to access this resource.");
     }
 
     // 3. @Valid validation failures
@@ -69,7 +75,7 @@ public class GlobalExceptionHandler {
     // 5. Any other RuntimeException
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Object> handleRuntimeException(RuntimeException ex, WebRequest request) {
-        if (IS_PRODUCTION) {
+        if (isProduction()) {
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
         } else {
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -81,7 +87,7 @@ public class GlobalExceptionHandler {
     // 6. Final fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
-        if (IS_PRODUCTION) {
+        if (isProduction()) {
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         } else {
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -95,12 +101,10 @@ public class GlobalExceptionHandler {
         return buildResponse(status, message, null);
     }
 
-    private ResponseEntity<Object> buildResponse(HttpStatus status, String message, Object details) {
-        Map<String, Object> body = Map.of(
-                "timestamp", Instant.now(),
-                "status", status.value(),
-                "error", message
-        );
+    private ResponseEntity<Object> buildResponse(HttpStatus status, String message,
+            Object details) {
+        Map<String, Object> body =
+                Map.of("timestamp", Instant.now(), "status", status.value(), "error", message);
 
         if (details != null) {
             Map<String, Object> mutableBody = new HashMap<>(body);
@@ -117,9 +121,7 @@ public class GlobalExceptionHandler {
 
     // Only in dev: include stack trace
     private String[] getStackTrace(Throwable t) {
-        return java.util.Arrays.stream(t.getStackTrace())
-                .map(StackTraceElement::toString)
-                .limit(10)
+        return java.util.Arrays.stream(t.getStackTrace()).map(StackTraceElement::toString).limit(10)
                 .toArray(String[]::new);
     }
 }
