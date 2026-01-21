@@ -2,30 +2,25 @@ package com.infynno.javastartup.startup.modules.services.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.infynno.javastartup.startup.common.exceptions.AuthException;
-import com.infynno.javastartup.startup.common.response.ApiResponse;
+import org.springframework.transaction.annotation.Transactional;
 import com.infynno.javastartup.startup.modules.services.dto.ServiceResponse;
+import com.infynno.javastartup.startup.modules.services.mapper.ServiceMapper;
 import com.infynno.javastartup.startup.modules.services.model.Services;
 import com.infynno.javastartup.startup.modules.services.repository.ServiceRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ServicesService {
-    @Autowired
-    final ServiceRepository serviceRepository;
 
-    @Transactional
-    public ApiResponse<List<ServiceResponse>> getAllServices() throws AuthException {
+    private final ServiceRepository serviceRepository;
+    private final ServiceMapper serviceMapper;
+
+    public List<ServiceResponse> getAllServices() {
         List<Services> services = serviceRepository.findAll();
-        List<ServiceResponse> serviceResponses = services.stream()
-                .map(ServiceResponse::fromEntity)
-                .collect(Collectors.toList());
-
-        return ApiResponse.success("Services fetched successfully", serviceResponses);
+        return services.stream().map(serviceMapper::toResponse).collect(Collectors.toList());
     }
-    
+
 }

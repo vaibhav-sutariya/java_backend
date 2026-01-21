@@ -1,29 +1,26 @@
 package com.infynno.javastartup.startup.modules.services.model;
 
-import org.hibernate.annotations.UuidGenerator;
-
+import com.infynno.javastartup.startup.common.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@ToString(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "services")
-public class Services {
-
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    @Column(nullable = false, updatable = false, columnDefinition = "VARCHAR(36)")
-    private String id;
+@Table(name = "services", indexes = {@Index(name = "idx_service_name", columnList = "name")})
+public class Services extends BaseEntity {
 
     @Column(nullable = false)
     private String name;

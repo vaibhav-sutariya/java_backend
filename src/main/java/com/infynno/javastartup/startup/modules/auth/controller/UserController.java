@@ -23,21 +23,24 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     @Autowired
     final UserService userService;
+
     @GetMapping("/me")
-    public ApiResponse<?> me(Authentication auth) throws AuthException {
+    public ResponseEntity<ApiResponse<User>> me(Authentication auth) throws AuthException {
         if (auth == null) {
             throw new AuthException("Unauthorized");
         }
-        return ApiResponse.success("User fetched successfully", auth.getPrincipal());
+        return ResponseEntity
+                .ok(ApiResponse.success("User fetched successfully", (User) auth.getPrincipal()));
     }
 
     @PutMapping("update-business-details")
     public ResponseEntity<ApiResponse<User>> updateBusinessDetails(
-            @Valid @RequestBody UpdateBusinessDetailsRequest req,
-            Authentication authentication) throws AuthException {
+            @Valid @RequestBody UpdateBusinessDetailsRequest req, Authentication authentication)
+            throws AuthException {
         User currentUser = (User) authentication.getPrincipal();
         // Assuming userService is injected and has the method updateBusinessDetails
         userService.updateBusinessDetails(currentUser, req);
-        return ResponseEntity.ok(ApiResponse.success("Business details updated successfully", currentUser));
+        return ResponseEntity
+                .ok(ApiResponse.success("Business details updated successfully", currentUser));
     }
 }

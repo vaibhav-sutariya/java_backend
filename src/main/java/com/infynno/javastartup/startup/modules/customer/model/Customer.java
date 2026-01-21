@@ -1,40 +1,34 @@
 package com.infynno.javastartup.startup.modules.customer.model;
 
-import java.time.Instant;
-import org.hibernate.annotations.UuidGenerator;
-import com.infynno.javastartup.startup.modules.auth.model.User;
+import com.infynno.javastartup.startup.common.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@ToString(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "customers")
-public class Customer {
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
-    private String id;
+@Table(name = "customers",
+        indexes = {@Index(name = "idx_customer_phone", columnList = "phoneNumber"),
+                @Index(name = "idx_customer_name", columnList = "name"),
+                @Index(name = "idx_customer_city", columnList = "city")})
+public class Customer extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String phoneNumber;
 
     @Column(nullable = false)
@@ -49,29 +43,5 @@ public class Customer {
     @Column(nullable = false)
     private String zipCode;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by", nullable = false, updatable = false)
-    private User createdBy;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "updated_by", nullable = false)
-    private User updatedBy;
-
-    @Column(nullable = false)
-    private Instant createdAt;
-
-    @Column(nullable = false)
-    private Instant updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = Instant.now();
-    }
+    // inherited: createdBy, updatedBy, createdAt, updatedAt, id
 }

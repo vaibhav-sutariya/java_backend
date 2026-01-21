@@ -15,10 +15,13 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/services")
 @RequiredArgsConstructor
 public class ServiceController {
+
     private final ServicesService servicesService;
 
     @GetMapping("/get-all-services")
-    public ResponseEntity<ApiResponse<List<ServiceResponse>>> getAllServices() throws AuthException {
-        return ResponseEntity.ok(servicesService.getAllServices());
+    public ResponseEntity<ApiResponse<List<ServiceResponse>>> getAllServices()
+            throws AuthException {
+        return ResponseEntity.ok(ApiResponse.success("Services fetched successfully",
+                servicesService.getAllServices()));
     }
 }

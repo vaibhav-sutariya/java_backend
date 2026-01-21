@@ -2,32 +2,33 @@ package com.infynno.javastartup.startup.modules.auth.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import org.hibernate.annotations.UuidGenerator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.infynno.javastartup.startup.common.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
+@ToString(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
-    private String id;
+@Table(name = "users", indexes = {@Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_phone", columnList = "phoneNumber")})
+public class User extends BaseEntity {
+
+    // ID inherited from BaseEntity
 
     @Column(nullable = false)
     private String name;
@@ -46,8 +47,9 @@ public class User {
     @Column(name = "token_invalid_before")
     private Instant tokenInvalidBefore;
 
-     // New fields for email verification
+    // New fields for email verification
     @Column(name = "email_verified", nullable = true)
+    @lombok.Builder.Default
     private boolean emailVerified = false;
 
     @Column(name = "email_verified_at")
@@ -56,39 +58,39 @@ public class User {
     @Column(name = "email_verification_sent_at")
     private Instant emailVerificationSentAt;
 
-    @Column(nullable= true, unique= true)
+    @Column(nullable = true, unique = true)
     private String phoneNumber;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String businessName;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String businessAddress;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String city;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String state;
-    
-    @Column(nullable= true)
+
+    @Column(nullable = true)
     private String zipCode;
 
-    @Column(nullable= true, unique= true)
+    @Column(nullable = true, unique = true)
     private String gstNumber;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String profileImage;
 
     @Column(columnDefinition = "TEXT")
     private String signature;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private String pin;
 
-    @Column(nullable= true)
+    @Column(nullable = true)
     private BigDecimal gstPercentage;
 }

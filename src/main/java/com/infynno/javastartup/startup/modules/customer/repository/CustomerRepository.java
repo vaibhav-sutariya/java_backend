@@ -13,20 +13,20 @@ import com.infynno.javastartup.startup.modules.customer.model.Customer;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, String> {
-    Optional<Customer> findByPhoneNumber(String phoneNumber);
+        Optional<Customer> findByPhoneNumber(String phoneNumber);
 
-    boolean existsByPhoneNumber(String phoneNumber);
+        boolean existsByPhoneNumber(String phoneNumber);
 
-    List<Customer> findByNameContainingIgnoreCase(String name);
+        List<Customer> findByNameContainingIgnoreCase(String name);
 
-    Page<Customer> findByCreatedById(String userId,Pageable pageable);
+        Page<Customer> findByCreatedById(String userId, Pageable pageable);
 
-    List<Customer> findByCityIgnoreCase(String city);
+        List<Customer> findByCityIgnoreCase(String city);
 
-    @Query("SELECT c FROM Customer c WHERE "
-            + "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND "
-            + "(:city IS NULL OR LOWER(c.city) = LOWER(:city)) AND "
-            + "(:phone IS NULL OR c.phoneNumber = :phone)")
-    List<Customer> searchCustomers(@Param("name") String name, @Param("city") String city,
-            @Param("phone") Long phone);
+        @Query("SELECT c FROM Customer c WHERE "
+                        + "(:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND "
+                        + "(:city IS NULL OR LOWER(c.city) = LOWER(:city)) AND "
+                        + "(:phone IS NULL OR c.phoneNumber = :phone)")
+        List<Customer> searchCustomers(@Param("name") String name, @Param("city") String city,
+                        @Param("phone") String phone);
 }

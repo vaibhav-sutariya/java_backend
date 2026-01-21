@@ -1,73 +1,55 @@
 package com.infynno.javastartup.startup.modules.customer.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
-import com.infynno.javastartup.startup.common.response.ApiResponse;
-import com.infynno.javastartup.startup.common.response.Pagination;
-import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.customer.dto.AddCustomerRequest;
 import com.infynno.javastartup.startup.modules.customer.dto.CustomerResponse;
+import com.infynno.javastartup.startup.modules.customer.mapper.CustomerMapper;
 import com.infynno.javastartup.startup.modules.customer.model.Customer;
 import com.infynno.javastartup.startup.modules.customer.repository.CustomerRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CustomerService {
-    @Autowired
+
     private final CustomerRepository customerRepository;
+    private final CustomerMapper customerMapper;
 
-    @CacheEvict(value = "customers", allEntries = true)
     @Transactional
-    public CustomerResponse addCustomer(AddCustomerRequest req, User currentUserId)
-            throws AuthException {
-
+    @CacheEvict(value = "customers", allEntries = true)
+    public CustomerResponse addCustomer(AddCustomerRequest req) {
         Customer customer = Customer.builder().name(req.getName()).phoneNumber(req.getPhoneNumber())
                 .address(req.getAddress()).state(req.getState()).city(req.getCity())
-                .zipCode(req.getZipCode()).createdBy(currentUserId).updatedBy(currentUserId)
-                .build();
-
+                .zipCode(req.getZipCode()).build();
+        // Auditing handles createdBy/updatedBy/dates
         customerRepository.save(customer);
-
-        return CustomerResponse.fromEntity(customer);
-
+        return customerMapper.toResponse(customer);
     }
-    
-    @Transactional
-    public ApiResponse<CustomerResponse> getCustomerById(String customerId) throws AuthException {
+
+    public CustomerResponse getCustomerById(String customerId) throws AuthException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new AuthException("Customer not found"));
-
-        return ApiResponse.success("Customer fetched successfully", CustomerResponse.fromEntity(customer));
+        return customerMapper.toResponse(customer);
     }
 
-
- 
     @Cacheable(value = "customers",
-    key = "#currentUserId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
-)
-    @Transactional
-    public ApiResponse<List<CustomerResponse>> getAllCustomers(String currentUserId, Pageable pageable) throws AuthException {
-        Page<Customer> page = customerRepository.findByCreatedById(currentUserId, pageable);
-
-        List<CustomerResponse> data = page.getContent().stream().map(CustomerResponse::fromEntity).collect(Collectors.toList());
-
-        Pagination pagination= new Pagination(page.getNumber(), page.getSize(), page.getTotalElements() , page.getTotalPages());
-
-        return  ApiResponse.success("Customer fetched successfully", data, pagination);
+            key = "#userId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<CustomerResponse> getAllCustomers(String userId, Pageable pageable) {
+        // Assuming filtering by creator is required logic
+        Page<Customer> page = customerRepository.findByCreatedById(userId, pageable);
+        return page.map(customerMapper::toResponse);
     }
 
-    @CacheEvict(value = "customers", allEntries = true)
     @Transactional
-    public ApiResponse<CustomerResponse> updateCustomer(String customerId, AddCustomerRequest req, User currentUser)
+    @CacheEvict(value = "customers", allEntries = true)
+    public CustomerResponse updateCustomer(String customerId, AddCustomerRequest req)
             throws AuthException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new AuthException("Customer not found"));
@@ -78,20 +60,17 @@ public class CustomerService {
         customer.setState(req.getState());
         customer.setCity(req.getCity());
         customer.setZipCode(req.getZipCode());
-        customer.setUpdatedBy(currentUser);
+        // Auditing handles updatedBy/updatedAt
 
         customerRepository.save(customer);
-
-        return ApiResponse.success("Customer updated successfully", CustomerResponse.fromEntity(customer));
+        return customerMapper.toResponse(customer);
     }
 
+    @Transactional
     @CacheEvict(value = "customers", allEntries = true)
-    public ApiResponse<Void> deleteCustomer(String customerId) throws AuthException {
+    public void deleteCustomer(String customerId) throws AuthException {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new AuthException("Customer not found"));
-
         customerRepository.delete(customer);
-
-        return ApiResponse.success("Customer deleted successfully", null);
     }
 }
