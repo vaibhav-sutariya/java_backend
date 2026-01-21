@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -45,11 +46,13 @@ public abstract class BaseEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @JsonIgnore
     @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", updatable = false)
     private User createdBy;
 
+    @JsonIgnore
     @LastModifiedBy
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
