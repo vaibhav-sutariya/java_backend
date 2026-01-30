@@ -1,6 +1,5 @@
 package com.infynno.javastartup.startup.modules.auth.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,11 +7,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.common.response.ApiResponse;
 import com.infynno.javastartup.startup.modules.auth.dto.UpdateBusinessDetailsRequest;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.service.UserService;
-import jakarta.security.auth.message.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -21,8 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    final UserService userService;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<User>> me(Authentication auth) throws AuthException {
@@ -33,7 +31,7 @@ public class UserController {
                 .ok(ApiResponse.success("User fetched successfully", (User) auth.getPrincipal()));
     }
 
-    @PutMapping("update-business-details")
+    @PutMapping("/update-business-details")
     public ResponseEntity<ApiResponse<User>> updateBusinessDetails(
             @Valid @RequestBody UpdateBusinessDetailsRequest req, Authentication authentication)
             throws AuthException {

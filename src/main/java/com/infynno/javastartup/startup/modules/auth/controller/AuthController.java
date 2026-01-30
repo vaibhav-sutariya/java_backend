@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.common.response.ApiResponse;
 import com.infynno.javastartup.startup.modules.auth.config.JwtService;
 import com.infynno.javastartup.startup.modules.auth.dto.AuthResponse;
@@ -24,7 +25,6 @@ import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
 import com.infynno.javastartup.startup.modules.auth.service.AccessTokenBlacklistService;
 import com.infynno.javastartup.startup.modules.auth.service.AuthService;
 import com.infynno.javastartup.startup.modules.auth.service.OtpService;
-import jakarta.security.auth.message.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

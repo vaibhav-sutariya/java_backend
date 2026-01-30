@@ -3,19 +3,15 @@ package com.infynno.javastartup.startup.modules.auth.service;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.common.otp.OtpProvider;
 import com.infynno.javastartup.startup.modules.auth.model.OtpRecord;
 import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.OtpRecordRepository;
 import com.infynno.javastartup.startup.modules.auth.repository.UserRepository;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class OtpService {
-    
-    @Autowired
+
     private final UserRepository userRepository;
-    @Autowired
     private final OtpRecordRepository otpRepository;
     private final Map<String, OtpProvider> otpProviderMap;
+    private final OtpProvider provider;
 
     @Value("${otp.provider:MAILTRAP}")
     private String defaultProvider;
@@ -43,17 +38,23 @@ public class OtpService {
     @Value("${otp.daily-limit:5}")
     private int dailyLimit;
 
-    @Autowired
-    OtpProvider provider;
-
     @Transactional
     public void sendOtp(String email, String purpose) throws AuthException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException("No account found with this email"));
 
+        // Short-term rate limiting: 1 request per 60 seconds
+        Instant oneMinuteAgo = Instant.now().minusSeconds(60);
+        long recentCount =
+                otpRepository.countByUserAndPurposeAndCreatedAtAfter(user, purpose, oneMinuteAgo);
+        if (recentCount > 0) {
+            throw new AuthException("Please wait 60 seconds before requesting another OTP");
+        }
+
         // Rate limit: 5 per day per purpose
         Instant startOfDay = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.DAYS);
-        long todayCount = otpRepository.countByUserAndPurposeAndCreatedAtAfter(user, purpose, startOfDay);
+        long todayCount =
+                otpRepository.countByUserAndPurposeAndCreatedAtAfter(user, purpose, startOfDay);
 
         if (todayCount >= dailyLimit) {
             throw new AuthException("Too many OTP requests. Try again tomorrow.");
@@ -62,21 +63,18 @@ public class OtpService {
         String otp = generateOtp();
         Instant expiresAt = Instant.now().plusSeconds(expiryMinutes * 60L);
 
-        OtpRecord record = OtpRecord.builder()
-                .code(otp)
-                .user(user)
-                .purpose(purpose)
-                .createdAt(Instant.now())
-                .expiresAt(expiresAt)
-                .used(false)
-                .channel(getProviderChannel())
-                .build();
-        
+        OtpRecord record =
+                OtpRecord.builder().code(otp).user(user).purpose(purpose).createdAt(Instant.now())
+                        .expiresAt(expiresAt).used(false).channel(getProviderChannel()).build();
+
         otpRepository.save(record);
 
         try {
             provider.sendOtp(email, otp, purpose);
-            log.info("OTP sent via {} to {} for purpose: {}", provider.getName(), email, purpose);
+            // Mask email for privacy (show only first 3 characters)
+            String maskedEmail = email.substring(0, Math.min(3, email.length())) + "***";
+            log.info("OTP sent via {} to {} for purpose: {}", provider.getName(), maskedEmail,
+                    purpose);
         } catch (Exception e) {
             log.error("Failed to send OTP via {}: {}", provider.getName(), e.getMessage());
             throw new AuthException("Failed to send OTP. Please try again later.");
@@ -87,12 +85,12 @@ public class OtpService {
     public void verifyOtp(String email, String otp, String purpose) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthException("Invalid email"));
-        
+
         Instant now = Instant.now();
 
-        OtpRecord record = otpRepository
-                .findByCodeAndPurposeAndUsedFalseAndExpiresAtAfter(otp, purpose, now)
-                .orElseThrow(() -> new AuthException("Invalid or expired OTP"));
+        OtpRecord record =
+                otpRepository.findByCodeAndPurposeAndUsedFalseAndExpiresAtAfter(otp, purpose, now)
+                        .orElseThrow(() -> new AuthException("Invalid or expired OTP"));
 
         if (!record.getUser().equals(user)) {
             throw new AuthException("Invalid OTP for the provided email");
@@ -100,7 +98,7 @@ public class OtpService {
 
         record.setUsed(true);
         otpRepository.save(record);
-        
+
         log.info("OTP verified for user: {}, purpose: {}", email, purpose);
     }
 

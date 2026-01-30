@@ -37,15 +37,17 @@ public class AuthService {
 
     @Transactional
     public RegisterResponse register(RegisterRequest req) throws AuthException {
-        if (userRepo.existsByEmail(req.getEmail())) {
+        String normalizedEmail = req.getEmail().toLowerCase().trim();
+
+        if (userRepo.existsByEmail(normalizedEmail)) {
             throw AuthException.emailAlreadyExists();
         }
-        User user = User.builder().name(req.getName()).email(req.getEmail())
+        User user = User.builder().name(req.getName()).email(normalizedEmail)
                 .password(encoder.encode(req.getPassword())).role(Role.USER).emailVerified(false)
                 .emailVerificationSentAt(Instant.now()).build();
         userRepo.save(user);
 
-        otpService.sendOtp(req.getEmail(), "EMAIL_VERIFICATION");
+        otpService.sendOtp(normalizedEmail, "EMAIL_VERIFICATION");
 
         return authMapper.toRegisterResponse(user,
                 "Registration successful. Please check your email for verification OTP.");
@@ -70,7 +72,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest req) throws AuthException {
-        User user = userRepo.findByEmail(req.getEmail())
+        String normalizedEmail = req.getEmail().toLowerCase().trim();
+
+        User user = userRepo.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new AuthException("User not found"));
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
             throw AuthException.invalidCredentials();

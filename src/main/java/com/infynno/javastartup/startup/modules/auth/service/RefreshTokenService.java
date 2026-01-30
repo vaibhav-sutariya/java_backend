@@ -1,10 +1,11 @@
 package com.infynno.javastartup.startup.modules.auth.service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
 import com.infynno.javastartup.startup.modules.auth.config.JwtService;
@@ -13,11 +14,12 @@ import com.infynno.javastartup.startup.modules.auth.model.User;
 import com.infynno.javastartup.startup.modules.auth.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RefreshTokenService {
-    @Autowired
     private final RefreshTokenRepository repository;
     private final JwtService jwtService;
 
@@ -97,5 +99,28 @@ public class RefreshTokenService {
         });
         repository.saveAll(familyTokens);
         user.setTokenInvalidBefore(now);
+    }
+
+    /**
+     * Scheduled cleanup for expired and old revoked refresh tokens Runs daily at 2 AM
+     */
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void cleanupOldTokens() {
+        Instant now = Instant.now();
+        Instant thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS);
+
+        // Delete tokens that are expired OR were revoked more than 30 days ago
+        List<RefreshToken> expiredTokens = repository.findAllByExpiresAtBefore(now);
+        List<RefreshToken> oldRevokedTokens = repository.findAllByRevokedAtBefore(thirtyDaysAgo);
+
+        int deletedCount = expiredTokens.size() + oldRevokedTokens.size();
+
+        repository.deleteAll(expiredTokens);
+        repository.deleteAll(oldRevokedTokens);
+
+        if (deletedCount > 0) {
+            log.info("Cleaned up {} expired/old refresh tokens", deletedCount);
+        }
     }
 }

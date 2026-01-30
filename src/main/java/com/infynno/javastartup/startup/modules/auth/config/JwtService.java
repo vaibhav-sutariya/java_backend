@@ -33,48 +33,41 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException(
+                    "JWT secret must be at least 32 characters for security. Current length: "
+                            + (secret != null ? secret.length() : 0));
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     // ACCESS TOKEN
     public String generateAccessToken(String email, Role role) {
         String jti = UUID.randomUUID().toString();
-        return Jwts.builder()
-                .setId(jti)
-                .setSubject(email)
-                .claim("role", role)
+        return Jwts.builder().setId(jti).setSubject(email).claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessExpiryMs))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(key, SignatureAlgorithm.HS256).compact();
     }
 
     // REFRESH TOKEN
     public String generateRefreshToken(String email, String family) {
-        return Jwts.builder()
-                .setSubject(email)
-                .claim("family", family)
-                .setIssuedAt(new Date())
+        return Jwts.builder().setSubject(email).claim("family", family).setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiryMs))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(key, SignatureAlgorithm.HS256).compact();
     }
 
     public Claims extractAllClaims(String token) {
-    try {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    } catch (ExpiredJwtException e) {
-        throw e; // Re-throw specific exceptions
-    } catch (MalformedJwtException | SignatureException e) {
-        throw e; // Re-throw specific exceptions
-    } catch (Exception e) {
-        throw new MalformedJwtException("Invalid JWT token");
+        try {
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        } catch (ExpiredJwtException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (MalformedJwtException | SignatureException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (Exception e) {
+            throw new MalformedJwtException("Invalid JWT token");
+        }
     }
-}
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -105,12 +98,12 @@ public class JwtService {
         return extractClaim(token, claims -> claims.getExpiration().toInstant());
     }
 
-   public boolean isValid(String token) {
-    try {
-        extractAllClaims(token);
-        return !extractExpiration(token).isBefore(Instant.now());
-    } catch (Exception e) {
-        return false; // Any exception means invalid
+    public boolean isValid(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return !claims.getExpiration().toInstant().isBefore(Instant.now());
+        } catch (Exception e) {
+            return false; // Any exception means invalid
+        }
     }
-}
 }

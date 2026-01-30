@@ -1,5 +1,6 @@
 package com.infynno.javastartup.startup.modules.auth.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,10 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Stri
     List<RefreshToken> findByUserAndFamily(User user, String family);
 
     void deleteAllByUser(User user);
+
+    // For cleanup scheduler
+    List<RefreshToken> findAllByExpiresAtBefore(Instant instant);
+
+    List<RefreshToken> findAllByRevokedAtBefore(Instant instant);
 
 }

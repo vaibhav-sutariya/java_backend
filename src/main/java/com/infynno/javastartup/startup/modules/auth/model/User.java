@@ -24,8 +24,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", indexes = {@Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_phone", columnList = "phoneNumber")})
+@Table(name = "users",
+        indexes = {@Index(name = "idx_user_email", columnList = "email"),
+                @Index(name = "idx_user_phone", columnList = "phoneNumber"),
+                @Index(name = "idx_user_token_invalid", columnList = "token_invalid_before")})
 public class User extends BaseEntity {
 
     // ID inherited from BaseEntity
@@ -48,7 +50,7 @@ public class User extends BaseEntity {
     private Instant tokenInvalidBefore;
 
     // New fields for email verification
-    @Column(name = "email_verified", nullable = true)
+    @Column(name = "email_verified", nullable = false)
     @lombok.Builder.Default
     private boolean emailVerified = false;
 
@@ -58,37 +60,37 @@ public class User extends BaseEntity {
     @Column(name = "email_verification_sent_at")
     private Instant emailVerificationSentAt;
 
-    @Column(nullable = true, unique = true)
+    @Column(unique = true, length = 15)
     private String phoneNumber;
 
-    @Column(nullable = true)
+    @Column(length = 500)
     private String businessName;
 
-    @Column(nullable = true)
+    @Column(length = 500)
     private String businessAddress;
 
-    @Column(nullable = true)
+    @Column(length = 100)
     private String city;
 
-    @Column(nullable = true)
+    @Column(length = 100)
     private String state;
 
-    @Column(nullable = true)
+    @Column(length = 20)
     private String zipCode;
 
-    @Column(nullable = true, unique = true)
+    @Column(unique = true, length = 15)
     private String gstNumber;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 5000)
     private String notes;
 
-    @Column(nullable = true)
+    @Column(length = 500)
     private String profileImage;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 10000)
     private String signature;
 
-    @Column(nullable = true)
+    @Column(length = 6)
     private String pin;
 
     @Column(nullable = true)

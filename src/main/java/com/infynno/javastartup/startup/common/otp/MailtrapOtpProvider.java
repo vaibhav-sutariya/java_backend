@@ -1,19 +1,19 @@
 package com.infynno.javastartup.startup.common.otp;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import com.infynno.javastartup.startup.common.exceptions.AuthException;
-
 import io.mailtrap.client.MailtrapClient;
 import io.mailtrap.config.MailtrapConfig;
 import io.mailtrap.factory.MailtrapClientFactory;
 import io.mailtrap.model.request.emails.Address;
 import io.mailtrap.model.request.emails.MailtrapMail;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class MailtrapOtpProvider implements OtpProvider {
 
     @Value("${mailtrap.api-key}")
@@ -25,27 +25,23 @@ public class MailtrapOtpProvider implements OtpProvider {
     @Value("${mailtrap.sender-name}")
     private String senderName;
 
-    private volatile MailtrapClient mailtrapClient;
+    private MailtrapClient mailtrapClient;
 
     @Override
     public String getName() {
         return "MAILTRAP";
     }
 
-    private MailtrapClient getClient() {
-        if (mailtrapClient == null) {
-            synchronized (this) {
-                if (mailtrapClient == null) {
-                    MailtrapConfig config = new MailtrapConfig.Builder()
-                        .token(apiKey)
-                        .build();
+    /**
+     * Initialize Mailtrap client on bean creation This replaces the unnecessary double-checked
+     * locking pattern
+     */
+    @PostConstruct
+    public void init() {
+        MailtrapConfig config = new MailtrapConfig.Builder().token(apiKey).build();
 
-                    mailtrapClient =
-                        MailtrapClientFactory.createMailtrapClient(config);
-                }
-            }
-        }
-        return mailtrapClient;
+        mailtrapClient = MailtrapClientFactory.createMailtrapClient(config);
+        log.info("Mailtrap OTP provider initialized successfully");
     }
 
     @Override
@@ -58,30 +54,26 @@ public class MailtrapOtpProvider implements OtpProvider {
         };
 
         String html = """
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;
-                        padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2>%s</h2>
-                <p>Your OTP is:</p>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px;
-                            text-align: center; background: #F3F4F6;
-                            padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    %s
-                </div>
-            </div>
-        """.formatted(subject, otp);
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;
+                                padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                        <h2>%s</h2>
+                        <p>Your OTP is:</p>
+                        <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px;
+                                    text-align: center; background: #F3F4F6;
+                                    padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            %s
+                        </div>
+                    </div>
+                """.formatted(subject, otp);
 
-        MailtrapMail mail = MailtrapMail.builder()
-            .from(new Address(senderEmail, senderName))
-            .to(List.of(new Address(toEmail)))
-            .subject(subject)
-            .html(html)
-            .category(purpose)
-            .build();
+        MailtrapMail mail = MailtrapMail.builder().from(new Address(senderEmail, senderName))
+                .to(List.of(new Address(toEmail))).subject(subject).html(html).category(purpose)
+                .build();
 
         try {
-            getClient().send(mail);
+            mailtrapClient.send(mail);
         } catch (Exception e) {
-            System.err.println("Failed to send OTP via Mailtrap: " + e.getMessage());
+            log.error("Failed to send OTP via Mailtrap", e);
             throw new AuthException("Failed to send OTP via Mailtrap");
         }
     }
